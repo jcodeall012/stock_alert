@@ -9,7 +9,7 @@ import yfinance as yf
 from flask import Flask, request, render_template_string, redirect, url_for, jsonify
 
 app = Flask(__name__)
-CONFIG_FILE = 'config_acciones.json'
+CONFIG_FILE = '/data/config_acciones.json'
 
 # --- 🔔 CONFIGURACIÓN DE NTFY ---
 NTFY_TOPIC = "stocks_alerts"  # Cambia esto por tu canal de ntfy
@@ -570,7 +570,10 @@ def delete_alert(alert_id):
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    # Railway asigna un puerto dinámico mediante la variable de entorno PORT
+    # 1. ARRANCAR EL HILO DE VIGILANCIA (Obligatorio para que funcione en segundo plano)
+    hilo_vigilante = threading.Thread(target=vigilar_precios, daemon=True)
+    hilo_vigilante.start()
+
+    # 2. Arrancar la aplicación Flask en el puerto de Railway
     puerto = int(os.environ.get("PORT", 5050))
-    # Es obligatorio usar 0.0.0.0 para que el servidor acepte conexiones externas
     app.run(host='0.0.0.0', port=puerto, debug=False)
